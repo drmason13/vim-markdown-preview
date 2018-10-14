@@ -54,6 +54,14 @@ if !exists("g:vim_markdown_preview_use_xdg_open")
     let g:vim_markdown_preview_use_xdg_open = 0
 endif
 
+if !exists("g:vim_markdown_preview_use_custom_command")
+  let g:vim_markdown_preview_use_custom_command = 0
+endif
+
+if !exists("g:vim_markdown_preview_custom_command")
+  let g:vim_markdown_preview_custom_command = ''
+endif
+
 if !exists("g:vim_markdown_preview_hotkey")
     let g:vim_markdown_preview_hotkey='<C-p>'
 endif
@@ -75,19 +83,23 @@ function! Vim_Markdown_Preview()
   endif
 
   if g:vmp_osname == 'unix'
-    let chrome_wid = system("xdotool search --name 'vim-markdown-preview.html - " . g:vim_markdown_preview_browser . "'")
-    if !chrome_wid
-      if g:vim_markdown_preview_use_xdg_open == 1
-        call system('xdg-open /tmp/vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+    let browser_wid = system("xdotool search --name 'vim-markdown-preview.html - " . g:vim_markdown_preview_browser . "'")
+    if !browser_wid
+      if g:vim_markdown_preview_use_custom_command == 1
+        call system(g:vim_markdown_preview_custom_command . " /tmp/vim-markdown-preview.html")
       else
-        call system('see /tmp/vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        if g:vim_markdown_preview_use_xdg_open == 1
+          call system('xdg-open /tmp/vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        else
+          call system('see /tmp/vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        endif
       endif
     else
-      let curr_wid = system('xdotool getwindowfocus')
-      call system('xdotool windowmap ' . chrome_wid)
-      call system('xdotool windowactivate ' . chrome_wid)
+      let vim_wid = system('xdotool getwindowfocus')
+      call system('xdotool windowmap ' . browser_wid)
+      call system('xdotool windowactivate ' . browser_wid)
       call system("xdotool key 'ctrl+r'")
-      call system('xdotool windowactivate ' . curr_wid)
+      call system('xdotool windowactivate ' . vim_wid)
     endif
   endif
 
@@ -118,9 +130,9 @@ function! Vim_Markdown_Preview_Local()
   if g:vim_markdown_preview_github == 1
     call system('grip "' . b:curr_file . '" --export vim-markdown-preview.html --title vim-markdown-preview.html')
   elseif g:vim_markdown_preview_perl == 1
-    call system('Markdown.pl "' . b:curr_file . '" > /tmp/vim-markdown-preview.html')
+    call system('Markdown.pl "' . b:curr_file . '" > vim-markdown-preview.html')
   elseif g:vim_markdown_preview_pandoc == 1
-    call system('pandoc --standalone "' . b:curr_file . '" > /tmp/vim-markdown-preview.html')
+    call system('pandoc --standalone "' . b:curr_file . '" > vim-markdown-preview.html')
   else
     call system('markdown "' . b:curr_file . '" > vim-markdown-preview.html')
   endif
@@ -129,19 +141,25 @@ function! Vim_Markdown_Preview_Local()
   endif
 
   if g:vmp_osname == 'unix'
-    let chrome_wid = system("xdotool search --name vim-markdown-preview.html - " . g:vim_markdown_preview_browser . "'")
-    if !chrome_wid
-      if g:vim_markdown_preview_use_xdg_open == 1
-        call system('xdg-open vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+    let browser_wid = system("xdotool search --name 'vim-markdown-preview.html - " . g:vim_markdown_preview_browser . "'")
+    if !browser_wid
+      let vim_wid = system('xdotool getwindowfocus')
+      if g:vim_markdown_preview_use_custom_command == 1
+        call system(g:vim_markdown_preview_custom_command . " vim-markdown-preview.html")
       else
-        call system('see vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        if g:vim_markdown_preview_use_xdg_open == 1
+          call system('xdg-open vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        else
+          call system('see vim-markdown-preview.html 1>/dev/null 2>/dev/null &')
+        endif
       endif
+      call system('xdotool windowactivate ' . vim_wid)
     else
-      let curr_wid = system('xdotool getwindowfocus')
-      call system('xdotool windowmap ' . chrome_wid)
-      call system('xdotool windowactivate ' . chrome_wid)
+      let vim_wid = system('xdotool getwindowfocus')
+      call system('xdotool windowmap ' . browser_wid)
+      call system('xdotool windowactivate ' . browser_wid)
       call system("xdotool key 'ctrl+r'")
-      call system('xdotool windowactivate ' . curr_wid)
+      call system('xdotool windowactivate ' . vim_wid)
     endif
   endif
 
